@@ -1,10 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useFaceDetection } from "@/hooks/useFaceDetection";
 import { useLiveAnalysis } from "@/hooks/useLiveAnalysis";
 import type { AnalysisResult } from "@/hooks/useLiveAnalysis";
-import type { EmotionKey } from "@/lib/emotiart-types";
 
 interface LiveInputPanelProps {
   onResult: (result: AnalysisResult) => void;
@@ -12,21 +10,19 @@ interface LiveInputPanelProps {
   autoStart?: boolean;
 }
 
-export function LiveInputPanel({ onEmotionChange, isActive, onActiveChange, autoStart = false }: LiveInputPanelProps) {
-  const { videoRef, detectionState, startDetection, stopDetection } = useFaceDetection(onEmotionChange);
+export function LiveInputPanel({ onResult, onActiveChange, autoStart = false }: LiveInputPanelProps) {
+  const { videoRef, transcript, status, error, startAnalysis, stopAnalysis } = useLiveAnalysis(onResult);
   const hasAutoStarted = useRef(false);
 
-  // Auto-start camera immediately on mount
+  // Auto-start camera immediately on mount if autoStart is true
   useEffect(() => {
     if (autoStart && !hasAutoStarted.current) {
       hasAutoStarted.current = true;
       onActiveChange(true);
-      startDetection();
+      startAnalysis();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-export function LiveInputPanel({ onResult, onActiveChange }: LiveInputPanelProps) {
-  const { videoRef, transcript, status, error, startAnalysis, stopAnalysis } = useLiveAnalysis(onResult);
 
   const handleStart = async () => {
     onActiveChange(true);
