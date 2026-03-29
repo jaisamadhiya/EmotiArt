@@ -25,6 +25,17 @@ export const EMOTIONS: Emotion[] = [
   { key: "overwhelmed", name: "Overwhelmed", color: "#8ECAE6", shape: "squares", shapeDescription: "Overlapping squares" },
 ];
 
+export interface ArtParams {
+  primary: { color: string; colorRgb: number[]; shape: string };
+  secondary: { color: string; colorRgb: number[]; shape: string } | null;
+  shapeCount: number;
+  sizeMin: number;
+  sizeMax: number;
+  opacityMin: number;
+  opacityMax: number;
+  secondaryRatio: number;
+}
+
 export interface EmotiArtState {
   activeEmotion: EmotionKey;
   confidence: number;

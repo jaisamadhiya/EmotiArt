@@ -1,35 +1,34 @@
 "use client";
 
-import { useFaceDetection } from "@/hooks/useFaceDetection";
+import { useLiveAnalysis } from "@/hooks/useLiveAnalysis";
+import type { AnalysisResult } from "@/hooks/useLiveAnalysis";
 import type { EmotionKey } from "@/lib/emotiart-types";
 
 interface LiveInputPanelProps {
-  onEmotionChange: (emotion: EmotionKey, confidence: number) => void;
-  isActive: boolean;
+  onResult: (result: AnalysisResult) => void;
   onActiveChange: (active: boolean) => void;
 }
 
-export function LiveInputPanel({ onEmotionChange, isActive, onActiveChange }: LiveInputPanelProps) {
-  const { videoRef, detectionState, startDetection, stopDetection } = useFaceDetection(onEmotionChange);
+export function LiveInputPanel({ onResult, onActiveChange }: LiveInputPanelProps) {
+  const { videoRef, transcript, status, error, startAnalysis, stopAnalysis } = useLiveAnalysis(onResult);
 
   const handleStart = async () => {
     onActiveChange(true);
-    await startDetection();
+    await startAnalysis();
   };
 
   const handleStop = () => {
-    stopDetection();
+    stopAnalysis();
     onActiveChange(false);
   };
 
-  const isLoading = detectionState.status === "loading";
-  const isRunning = detectionState.status === "active";
+  const isLoading = status === "loading";
+  const isRunning = status === "active";
 
   return (
-    <div className="bg-[#16161a] border border-[rgba(255,255,255,0.07)] rounded-xl p-4 flex flex-col gap-4">
-      {/* Camera Preview Area */}
+    <div className="bg-[#16161a] border border-[rgba(255,255,255,0.07)] rounded-xl p-4 flex flex-col gap-3">
+      {/* Camera Preview */}
       <div className="aspect-video bg-[#0a0a0c] rounded-lg border border-[rgba(255,255,255,0.07)] relative overflow-hidden">
-        {/* Video element — always mounted so ref is stable */}
         <video
           ref={videoRef}
           muted
@@ -37,7 +36,7 @@ export function LiveInputPanel({ onEmotionChange, isActive, onActiveChange }: Li
           className={`w-full h-full object-cover scale-x-[-1] ${isRunning ? "block" : "hidden"}`}
         />
 
-        {/* Idle state */}
+        {/* Idle */}
         {!isRunning && !isLoading && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
             <div className="w-10 h-10 rounded-full border-2 border-dashed border-[rgba(255,255,255,0.15)] flex items-center justify-center">
@@ -49,15 +48,15 @@ export function LiveInputPanel({ onEmotionChange, isActive, onActiveChange }: Li
           </div>
         )}
 
-        {/* Loading state */}
+        {/* Loading */}
         {isLoading && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
             <div className="w-5 h-5 border-2 border-[rgba(255,255,255,0.1)] border-t-[#06AED4] rounded-full animate-spin" />
-            <span className="font-mono text-xs text-[#6b6b7a]">Loading models...</span>
+            <span className="font-mono text-xs text-[#6b6b7a]">Starting...</span>
           </div>
         )}
 
-        {/* Emotion overlay — shown when running */}
+        {/* Live overlay */}
         {isRunning && (
           <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
             <div className="flex items-center gap-1.5 bg-black/60 backdrop-blur-sm rounded-md px-2 py-1">
@@ -73,23 +72,35 @@ export function LiveInputPanel({ onEmotionChange, isActive, onActiveChange }: Li
           </div>
         )}
 
-        {/* Error state */}
-        {detectionState.status === "error" && (
+        {/* Error */}
+        {status === "error" && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4">
-            <span className="font-mono text-xs text-red-400 text-center">{detectionState.error}</span>
+            <span className="font-mono text-xs text-red-400 text-center">{error}</span>
           </div>
         )}
       </div>
 
-      {/* Start button — only show when not running and not loading */}
+      {/* Start button */}
       {!isRunning && !isLoading && (
         <button
           onClick={handleStart}
-          disabled={detectionState.status === "error"}
+          disabled={status === "error"}
           className="w-full h-9 bg-[#06AED4]/10 border border-[#06AED4]/30 text-[#06AED4] font-mono text-xs rounded-lg hover:bg-[#06AED4]/20 active:scale-[0.98] transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {detectionState.status === "error" ? "Camera unavailable" : "Start camera"}
+          {status === "error" ? "Unavailable" : "Start camera"}
         </button>
+      )}
+
+      {/* Voice transcript */}
+      {isRunning && (
+        <div className="flex flex-col gap-1.5">
+          <label className="font-mono text-[11px] uppercase tracking-[0.1em] text-[#6b6b7a]">
+            Voice transcript
+          </label>
+          <div className="w-full min-h-[48px] bg-[#0a0a0c] border border-[rgba(255,255,255,0.07)] rounded-lg p-3 font-mono text-xs text-[#e8e8ec] leading-relaxed">
+            {transcript || <span className="text-[#6b6b7a]">Listening for speech...</span>}
+          </div>
+        </div>
       )}
     </div>
   );
