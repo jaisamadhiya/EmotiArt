@@ -34,6 +34,9 @@ export interface ArtParams {
   opacityMin: number;
   opacityMax: number;
   secondaryRatio: number;
+  primaryShapeCount?: number;
+  secondaryShapeCount?: number;
+  secondaryOpacityScale?: number;
 }
 
 export interface EmotiArtState {

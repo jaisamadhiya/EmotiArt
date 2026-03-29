@@ -105,9 +105,11 @@ function generateShapes(
   const emotionData = EMOTIONS.find((e) => e.key === emotion)!;
 
   if (artParams) {
-    const primaryCount = artParams.secondaryRatio > 0 && artParams.secondary
-      ? Math.round(artParams.shapeCount * (1 - artParams.secondaryRatio))
-      : artParams.shapeCount;
+    // Use new primaryShapeCount and secondaryShapeCount if available
+    const primaryCount = artParams.primaryShapeCount ||
+      (artParams.secondaryRatio > 0 && artParams.secondary
+        ? Math.round(artParams.shapeCount * (1 - artParams.secondaryRatio))
+        : artParams.shapeCount);
 
     const primary = buildShapes(
       {
@@ -123,8 +125,10 @@ function generateShapes(
       height
     );
 
-    if (artParams.secondary && artParams.secondaryRatio > 0) {
-      const secondaryCount = artParams.shapeCount - primaryCount;
+    if (artParams.secondary && (artParams.secondaryShapeCount > 0 || artParams.secondaryRatio > 0)) {
+      const secondaryCount = artParams.secondaryShapeCount || (artParams.shapeCount - primaryCount);
+      const opacityScale = artParams.secondaryOpacityScale || 0.7;
+
       const secondary = buildShapes(
         {
           shapeType: artParams.secondary.shape,
@@ -132,14 +136,14 @@ function generateShapes(
           count: secondaryCount,
           sizeMin: artParams.sizeMin,
           sizeMax: artParams.sizeMax,
-          opacityMin: artParams.opacityMin * 0.7,
-          opacityMax: artParams.opacityMax * 0.7,
+          opacityMin: artParams.opacityMin * opacityScale,
+          opacityMax: artParams.opacityMax * opacityScale,
         },
         width,
         height
       );
-      // Interleave so secondary shapes are spread across the canvas
-      return [...primary, ...secondary].sort(() => Math.random() - 0.5);
+      // Combine both - don't interleave, let them naturally overlap
+      return [...primary, ...secondary];
     }
 
     return primary;

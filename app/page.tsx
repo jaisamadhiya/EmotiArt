@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { LiveInputPanel } from "@/components/emotiart/live-input-panel";
+import { RecordingPanel } from "@/components/emotiart/recording-panel";
 import { EmotionDetectionPanel } from "@/components/emotiart/emotion-detection-panel";
 import { VisualGuidePanel } from "@/components/emotiart/visual-guide-panel";
 import { ArtCanvas } from "@/components/emotiart/art-canvas";
 import { Navbar } from "@/components/navbar";
 import { EmotionKey, EmotiArtState, ArtParams } from "@/lib/emotiart-types";
-import type { AnalysisResult } from "@/hooks/useLiveAnalysis";
+import type { RecordingResult } from "@/hooks/useRecordingSession";
 
 export default function EmotiArtPage() {
   const [state, setState] = useState<EmotiArtState>({
@@ -23,20 +23,16 @@ export default function EmotiArtPage() {
 
   const canvasRef = useRef<{ regenerate: () => void; download: () => void }>(null);
 
-  // Called by LiveInputPanel every 2.5s with the full Flask pipeline result
-  const handleResult = useCallback((result: AnalysisResult) => {
+  const handleRecordingResult = useCallback((result: RecordingResult) => {
     setState((prev) => ({
       ...prev,
-      activeEmotion: result.emotion,
+      activeEmotion: result.primaryEmotion,
       confidence: Math.round(result.intensity * 100),
+      transcript: result.transcript,
       isGenerated: true,
       generationKey: prev.generationKey + 1,
     }));
     setArtParams(result.art);
-  }, []);
-
-  const setListening = useCallback((active: boolean) => {
-    setState((prev) => ({ ...prev, isListening: active }));
   }, []);
 
   const generate = useCallback(() => {
@@ -73,12 +69,11 @@ export default function EmotiArtPage() {
       (window as typeof window & { EmotiArt: typeof window.EmotiArt }).EmotiArt = {
         setEmotion,
         setTranscript,
-        setListening,
         generate,
         processGeminiResult,
       };
     }
-  }, [setEmotion, setTranscript, setListening, generate, processGeminiResult]);
+  }, [setEmotion, setTranscript, generate, processGeminiResult]);
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-[#0d0d0f]">
@@ -96,10 +91,7 @@ export default function EmotiArtPage() {
         </div>
 
         <aside className="w-full lg:w-[320px] lg:order-1 flex-shrink-0 p-3 flex flex-col gap-3 overflow-y-auto">
-          <LiveInputPanel
-            onResult={handleResult}
-            onActiveChange={setListening}
-          />
+          <RecordingPanel onResult={handleRecordingResult} />
           <EmotionDetectionPanel
             activeEmotion={state.activeEmotion}
             confidence={state.confidence}
@@ -123,7 +115,6 @@ declare global {
     EmotiArt: {
       setEmotion: (key: string, confidence?: number) => void;
       setTranscript: (text: string) => void;
-      setListening: (active: boolean) => void;
       generate: () => void;
       processGeminiResult: (result: { emotion: string; confidence: number; transcript: string }) => void;
     };
