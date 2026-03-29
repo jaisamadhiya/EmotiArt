@@ -24,22 +24,38 @@ export default function ContactPage() {
     e.preventDefault();
     setIsSubmitting(true);
 
+    const subjectText = `[EmotiArt ${subjectLabels[formData.subject] || formData.subject}] Message from ${formData.name}`;
+
+    // Use Web3Forms - free email service (250 submissions/month)
+    // Get your free access key at https://web3forms.com with your Gmail
+    const web3FormsData = {
+      access_key: "YOUR_WEB3FORMS_ACCESS_KEY", // Replace with your Web3Forms access key
+      subject: subjectText,
+      from_name: "EmotiArt Contact Form",
+      name: formData.name,
+      email: formData.email,
+      message: formData.message,
+    };
+
     try {
-      const response = await fetch("/api/contact", {
+      const response = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(web3FormsData),
       });
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to send message");
-      }
+      const result = await response.json();
 
-      setIsSubmitted(true);
+      if (result.success) {
+        setIsSubmitted(true);
+      } else {
+        throw new Error("Form submission failed");
+      }
     } catch {
-      // Fallback to mailto if API fails
-      const subjectText = `[EmotiArt ${subjectLabels[formData.subject] || formData.subject}] Message from ${formData.name}`;
+      // Fallback to mailto if Web3Forms fails
       const bodyText = `Name: ${formData.name}\nEmail: ${formData.email}\n\nMessage:\n${formData.message}`;
       const mailtoLink = `mailto:jaisamadhiya@gmail.com?subject=${encodeURIComponent(subjectText)}&body=${encodeURIComponent(bodyText)}`;
       window.location.href = mailtoLink;

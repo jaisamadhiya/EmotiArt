@@ -23,11 +23,11 @@ export function Navbar() {
 
       {/* Navigation Links */}
       <nav className="flex items-center gap-1">
-        {navLinks.map((link) => {
+        {navLinks.map((link, index) => {
           const isActive = pathname === link.href;
           return (
             <Link
-              key={link.href}
+              key={`${index}-${link.label}`}
               href={link.href}
               className={`px-4 py-2 rounded-lg font-sans text-sm font-medium transition-all duration-150 ${
                 isActive
