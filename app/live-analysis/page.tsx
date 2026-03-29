@@ -101,6 +101,7 @@ export default function LiveAnalysisPage() {
             onEmotionChange={handleEmotionChange}
             isActive={state.isListening}
             onActiveChange={setListening}
+            autoStart={true}
           />
           <EmotionDetectionPanel
             activeEmotion={state.activeEmotion}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useFaceDetection } from "@/hooks/useFaceDetection";
 import type { EmotionKey } from "@/lib/emotiart-types";
 
@@ -7,10 +8,21 @@ interface LiveInputPanelProps {
   onEmotionChange: (emotion: EmotionKey, confidence: number) => void;
   isActive: boolean;
   onActiveChange: (active: boolean) => void;
+  autoStart?: boolean;
 }
 
-export function LiveInputPanel({ onEmotionChange, isActive, onActiveChange }: LiveInputPanelProps) {
+export function LiveInputPanel({ onEmotionChange, isActive, onActiveChange, autoStart = false }: LiveInputPanelProps) {
   const { videoRef, detectionState, startDetection, stopDetection } = useFaceDetection(onEmotionChange);
+  const hasAutoStarted = useRef(false);
+
+  // Auto-start camera when component mounts if autoStart is true
+  useEffect(() => {
+    if (autoStart && !hasAutoStarted.current && detectionState.status === "idle") {
+      hasAutoStarted.current = true;
+      onActiveChange(true);
+      startDetection();
+    }
+  }, [autoStart, detectionState.status, onActiveChange, startDetection]);
 
   const handleStart = async () => {
     onActiveChange(true);

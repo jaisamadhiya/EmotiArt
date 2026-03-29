@@ -16,7 +16,7 @@ export interface Emotion {
 }
 
 export const EMOTIONS: Emotion[] = [
-  { key: "happy", name: "Happy", color: "#FFD166", shape: "circle", shapeDescription: "Circle" },
+  { key: "happy", name: "Happy", color: "#22C55E", shape: "circle", shapeDescription: "Circle" },
   { key: "calm", name: "Calm", color: "#06AED4", shape: "wave", shapeDescription: "Horizontal wave line" },
   { key: "sad", name: "Sad", color: "#9B72CF", shape: "arc", shapeDescription: "Downward arc" },
   { key: "angry", name: "Angry", color: "#EF233C", shape: "triangle", shapeDescription: "Sharp upward triangle" },

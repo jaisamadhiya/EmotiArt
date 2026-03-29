@@ -3,23 +3,23 @@ import { Navbar } from "@/components/navbar";
 const textAnalysisFeatures = [
   {
     step: "01",
-    title: "Paste Your Text",
+    title: "Enter Your Text",
     description:
-      "Copy and paste messages, journal entries, emails, or any text you want to analyze for emotional content.",
+      "Type or paste messages, journal entries, emails, or any text you want to analyze for emotional content.",
     color: "#06AED4",
   },
   {
     step: "02",
-    title: "Keyword Analysis",
+    title: "AI-Powered Analysis",
     description:
-      "Our algorithm scans your text for emotion-related keywords and phrases to determine the dominant emotional tone.",
-    color: "#FFD166",
+      "Our OpenAI-powered system analyzes your text using advanced natural language processing to detect emotional nuances, tone, and sentiment.",
+    color: "#22C55E",
   },
   {
     step: "03",
     title: "Generate Art",
     description:
-      "Based on the detected emotion, EmotiArt creates unique visual artwork with shapes, colors, and patterns that represent the emotional content.",
+      "Based on the detected emotion (happy, calm, sad, angry, anxious, excited, or overwhelmed), EmotiArt creates unique visual artwork with shapes, colors, and patterns.",
     color: "#9B72CF",
   },
   {
@@ -34,23 +34,23 @@ const textAnalysisFeatures = [
 const liveAnalysisFeatures = [
   {
     step: "01",
-    title: "Enable Camera & Mic",
+    title: "Auto-Start Camera",
     description:
-      "Use your camera and microphone to let EmotiArt analyze your facial expressions and voice tone in real-time.",
+      "When you open Live Analysis, your camera automatically starts (after granting permission) to begin real-time facial expression detection.",
     color: "#06AED4",
   },
   {
     step: "02",
-    title: "AI Detection",
+    title: "Face Detection AI",
     description:
-      "Our AI powered by Gemini Live detects 7 distinct emotions: Happy, Calm, Sad, Angry, Anxious, Excited, and Overwhelmed.",
-    color: "#FFD166",
+      "Using face-api.js with TinyFaceDetector, EmotiArt analyzes your facial expressions in real-time to detect 7 distinct emotions: Happy, Calm, Sad, Angry, Anxious, Excited, and Overwhelmed.",
+    color: "#22C55E",
   },
   {
     step: "03",
-    title: "Generate Art",
+    title: "Real-Time Art Generation",
     description:
-      "Each emotion maps to unique visual elements - shapes, colors, and patterns that represent your emotional state.",
+      "As your emotions change, the art updates continuously. Each emotion maps to unique visual elements - shapes, colors, and patterns that represent your emotional state.",
     color: "#9B72CF",
   },
   {
@@ -63,7 +63,7 @@ const liveAnalysisFeatures = [
 ];
 
 const emotions = [
-  { name: "Happy", color: "#FFD166", shape: "Circles" },
+  { name: "Happy", color: "#22C55E", shape: "Circles" },
   { name: "Calm", color: "#06AED4", shape: "Waves" },
   { name: "Sad", color: "#9B72CF", shape: "Arcs" },
   { name: "Angry", color: "#EF233C", shape: "Triangles" },
@@ -189,7 +189,7 @@ export default function AboutPage() {
               Try Text Analysis
             </a>
             <a
-              href="/"
+              href="/live-analysis"
               className="inline-flex items-center justify-center h-12 px-8 bg-[#06AED4] text-black font-sans font-semibold text-sm rounded-lg hover:opacity-90 active:scale-[0.98] transition-all duration-150"
             >
               Try Live Analysis
