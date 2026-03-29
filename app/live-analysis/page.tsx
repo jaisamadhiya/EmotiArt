@@ -24,6 +24,7 @@ export default function LiveAnalysisPage() {
       activeEmotion: emotion,
       confidence,
       isGenerated: true,
+      generationKey: prev.generationKey + 1,
     }));
   }, []);
 
