@@ -1,6 +1,6 @@
 import type { EmotionKey } from "@/lib/emotiart-types";
 
-const EMOTION_VECTORS: Record<EmotionKey, { valence: number; arousal: number }> = {
+export const EMOTION_VECTORS: Record<EmotionKey, { valence: number; arousal: number }> = {
   happy:       { valence:  0.8, arousal:  0.4 },
   excited:     { valence:  0.7, arousal:  0.9 },
   calm:        { valence:  0.4, arousal: -0.6 },
@@ -41,7 +41,7 @@ function closestEmotion(valence: number, arousal: number): { emotion: EmotionKey
 
 export function synthesize(
   face: { emotion: EmotionKey; confidence: number },
-  voice: { emotion: EmotionKey; confidence: number; energy: number }
+  voice: { emotion: EmotionKey; confidence: number; energy: number; secondaryEmotion?: EmotionKey; secondaryConfidence?: number }
 ): SynthesisResult {
   const fv = EMOTION_VECTORS[face.emotion];
   const vv = EMOTION_VECTORS[voice.emotion];
@@ -57,18 +57,26 @@ export function synthesize(
 
   const { emotion: finalEmotion, dist: minDist } = closestEmotion(blendedValence, blendedArousal);
 
+  // Detect conflict: face vs voice primary, OR voice has secondary emotion with meaningful confidence
   const labelsDiffer = face.emotion !== voice.emotion;
-  // Always show secondary emotion when face and voice differ (not just on large distance)
-  const conflict     = labelsDiffer;
-  const conflictBlend = labelsDiffer ? Math.min(0.5, minDist * 0.7) : 0;
+  const voiceHasSecondary = voice.secondaryEmotion && (voice.secondaryConfidence ?? 0) > 0.05 && voice.secondaryEmotion !== voice.emotion;
+  const conflict = labelsDiffer || voiceHasSecondary;
+  const conflictBlend = conflict ? Math.min(0.5, minDist * 0.7) : 0;
 
   // Intensity: distance from center, boosted by voice energy
   const rawIntensity = Math.sqrt(blendedValence ** 2 + blendedArousal ** 2) / Math.sqrt(2);
   const intensity    = Math.min(1, rawIntensity * 0.7 + voice.energy * 0.3);
 
-  // Secondary emotion: the one with less confidence gets shown as secondary
-  // Usually face emotion since voice is weighted 70%
-  const secondaryEmotion = voice.confidence >= face.confidence ? face.emotion : voice.emotion;
+  // Secondary emotion: choose based on what we have
+  // Priority: voice secondary (if exists) > voice primary (if differs from face) > face
+  let secondaryEmotion: EmotionKey;
+  if (voiceHasSecondary) {
+    secondaryEmotion = voice.secondaryEmotion!;
+  } else if (labelsDiffer) {
+    secondaryEmotion = voice.confidence >= face.confidence ? face.emotion : voice.emotion;
+  } else {
+    secondaryEmotion = face.emotion;
+  }
 
   // Blend ratio: bias toward speech (70%) vs face (30%)
   const SPEECH_WEIGHT = 0.7;

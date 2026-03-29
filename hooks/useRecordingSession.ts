@@ -4,6 +4,7 @@ import { useRef, useState, useCallback, useEffect } from "react";
 import type { EmotionKey, ArtParams } from "@/lib/emotiart-types";
 import { analyzeVoiceEmotion } from "@/lib/voice-emotion";
 import { buildArtParams } from "@/lib/art-params";
+import { synthesize } from "@/lib/emotion-synthesizer";
 
 export type RecordingStatus = "idle" | "loading" | "recording" | "processing" | "done" | "error";
 
@@ -226,25 +227,32 @@ export function useRecordingSession(onResult?: (result: RecordingResult) => void
     stopRecording();
 
     try {
-      // Aggregate collected emotions
-      const { emotion: primaryEmotion, intensity } = aggregateEmotions(emotionFramesRef.current);
+      // Aggregate collected face emotions
+      const { emotion: faceEmotion, intensity: faceIntensity } = aggregateEmotions(emotionFramesRef.current);
 
-      // Build art params
-      const synthesis = {
-        emotion: primaryEmotion,
-        intensity,
-        conflict: false,
-        conflictBlend: 0,
-        secondaryEmotion: primaryEmotion,
-      };
+      // Analyze voice from full transcript
+      const voiceAnalysis = analyzeVoiceEmotion(transcriptRef.current);
 
+      // Synthesize face and voice emotions (including voice secondary if available)
+      const synthesis = synthesize(
+        { emotion: faceEmotion, confidence: faceIntensity },
+        {
+          emotion: voiceAnalysis.emotion,
+          confidence: voiceAnalysis.confidence,
+          energy: voiceAnalysis.energy,
+          secondaryEmotion: voiceAnalysis.secondaryEmotion,
+          secondaryConfidence: voiceAnalysis.secondaryConfidence,
+        }
+      );
+
+      // Build art params with synthesized result
       const art = buildArtParams(synthesis);
 
       const result: RecordingResult = {
         transcript: transcriptRef.current,
         emotionFrames: emotionFramesRef.current,
-        primaryEmotion,
-        intensity: Math.round(intensity * 100) / 100,
+        primaryEmotion: synthesis.emotion,
+        intensity: synthesis.intensity,
         art,
       };
 

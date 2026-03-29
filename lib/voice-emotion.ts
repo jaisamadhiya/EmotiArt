@@ -73,6 +73,8 @@ export function analyzeVoiceEmotion(transcript: string): {
   emotion: EmotionKey;
   confidence: number;
   energy: number;
+  secondaryEmotion?: EmotionKey;
+  secondaryConfidence?: number;
 } {
   if (!transcript.trim()) {
     return { emotion: "calm", confidence: 0, energy: 0 };
@@ -113,18 +115,18 @@ export function analyzeVoiceEmotion(transcript: string): {
     }
   }
 
-  // Find dominant emotion
-  let topEmotion: EmotionKey = "calm";
-  let topScore = 0;
-  for (const [emotion, score] of Object.entries(scores)) {
-    if (score > topScore) {
-      topScore = score;
-      topEmotion = emotion as EmotionKey;
-    }
-  }
+  // Find top 2 emotions
+  const sortedEmotions = Object.entries(scores)
+    .sort((a, b) => b[1] - a[1]);
+
+  const topEmotion = (sortedEmotions[0]?.[0] as EmotionKey) || "calm";
+  const topScore = sortedEmotions[0]?.[1] || 0;
+  const secondaryEmotion = (sortedEmotions[1]?.[0] as EmotionKey) || undefined;
+  const secondaryScore = sortedEmotions[1]?.[1] || 0;
 
   // Confidence: normalize by total weight
   const confidence = totalWeight > 0 ? Math.min(topScore / totalWeight, 1) : 0.2;
+  const secondaryConfidence = totalWeight > 0 ? Math.min(secondaryScore / totalWeight, 1) : 0;
 
   // Energy: word count, punctuation, and speaking rate
   const wordCount = words.length;
@@ -140,5 +142,11 @@ export function analyzeVoiceEmotion(transcript: string): {
       questionMarks * 0.05 // Questions slightly lower energy
   );
 
-  return { emotion: topEmotion, confidence: Math.max(confidence, 0.1), energy };
+  return {
+    emotion: topEmotion,
+    confidence: Math.max(confidence, 0.1),
+    energy,
+    secondaryEmotion: secondaryConfidence > 0.05 ? secondaryEmotion : undefined,
+    secondaryConfidence: secondaryConfidence > 0.05 ? secondaryConfidence : undefined,
+  };
 }
