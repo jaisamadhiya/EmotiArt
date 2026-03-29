@@ -44,12 +44,16 @@ export type FaceDetectionState = {
   error: string | null;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type FaceApiModule = any;
+
 export function useFaceDetection(
   onEmotionChange: (emotion: EmotionKey, confidence: number) => void
 ) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const animFrameRef = useRef<number | null>(null);
+  const faceapiRef = useRef<FaceApiModule | null>(null);
   const [detectionState, setDetectionState] = useState<FaceDetectionState>({
     status: "idle",
     error: null,
@@ -74,14 +78,31 @@ export function useFaceDetection(
     setDetectionState({ status: "loading", error: null });
 
     try {
-      // Dynamically import face-api (browser only)
-      const faceapi = await import("@vladmandic/face-api");
+      // Dynamically import face-api (browser only) with error handling
+      let faceapi: FaceApiModule;
+      try {
+        // Use dynamic import with webpackIgnore to avoid bundling issues
+        faceapi = await import(/* webpackIgnore: true */ "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/dist/face-api.esm.js");
+        faceapiRef.current = faceapi;
+      } catch {
+        // Fallback to npm package if CDN fails
+        try {
+          const module = await import("@vladmandic/face-api");
+          faceapi = module.default || module;
+          faceapiRef.current = faceapi;
+        } catch (importErr) {
+          console.error("Failed to load face-api:", importErr);
+          throw new Error("Failed to load face detection library. Please try again.");
+        }
+      }
 
+      // Load models
       await Promise.all([
         faceapi.nets.tinyFaceDetector.loadFromUri("/models"),
         faceapi.nets.faceExpressionNet.loadFromUri("/models"),
       ]);
 
+      // Request camera access
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { width: 640, height: 480, facingMode: "user" },
         audio: false,
@@ -104,17 +125,21 @@ export function useFaceDetection(
       let lastRun = 0;
 
       const detect = async (timestamp: number) => {
-        if (!videoRef.current || !streamRef.current) return;
+        if (!videoRef.current || !streamRef.current || !faceapiRef.current) return;
 
         if (timestamp - lastRun >= INTERVAL_MS) {
           lastRun = timestamp;
-          const result = await faceapi
-            .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions())
-            .withFaceExpressions();
+          try {
+            const result = await faceapiRef.current
+              .detectSingleFace(videoRef.current, new faceapiRef.current.TinyFaceDetectorOptions())
+              .withFaceExpressions();
 
-          if (result?.expressions) {
-            const { emotion, confidence } = mapToEmotionKey(result.expressions as unknown as FaceApiExpression);
-            onEmotionChange(emotion, confidence);
+            if (result?.expressions) {
+              const { emotion, confidence } = mapToEmotionKey(result.expressions as unknown as FaceApiExpression);
+              onEmotionChange(emotion, confidence);
+            }
+          } catch {
+            // Silently continue if a single detection fails
           }
         }
 

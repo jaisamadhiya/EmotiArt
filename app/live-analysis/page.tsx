@@ -1,0 +1,137 @@
+"use client";
+
+import { useState, useRef, useEffect, useCallback } from "react";
+import { LiveInputPanel } from "@/components/emotiart/live-input-panel";
+import { EmotionDetectionPanel } from "@/components/emotiart/emotion-detection-panel";
+import { VisualGuidePanel } from "@/components/emotiart/visual-guide-panel";
+import { ArtCanvas } from "@/components/emotiart/art-canvas";
+import { Navbar } from "@/components/navbar";
+import { EmotionKey, EmotiArtState } from "@/lib/emotiart-types";
+
+export default function LiveAnalysisPage() {
+  const [state, setState] = useState<EmotiArtState>({
+    activeEmotion: "calm",
+    confidence: 0,
+    transcript: "",
+    isListening: false,
+    isGenerated: false,
+    generationKey: 0,
+  });
+
+  const handleEmotionChange = useCallback((emotion: EmotionKey, confidence: number) => {
+    setState((prev) => ({
+      ...prev,
+      activeEmotion: emotion,
+      confidence,
+      isGenerated: true,
+    }));
+  }, []);
+
+  const canvasRef = useRef<{ regenerate: () => void; download: () => void }>(null);
+
+  const setEmotion = useCallback((key: string, confidence?: number) => {
+    setState((prev) => ({
+      ...prev,
+      activeEmotion: key as EmotionKey,
+      confidence: confidence ?? prev.confidence,
+    }));
+  }, []);
+
+  const setTranscript = useCallback((text: string) => {
+    setState((prev) => ({ ...prev, transcript: text }));
+  }, []);
+
+  const setListening = useCallback((active: boolean) => {
+    setState((prev) => ({ ...prev, isListening: active }));
+  }, []);
+
+  const generate = useCallback(() => {
+    setState((prev) => ({
+      ...prev,
+      isGenerated: true,
+      generationKey: prev.generationKey + 1,
+    }));
+  }, []);
+
+  const processGeminiResult = useCallback(
+    (result: { emotion: string; confidence: number; transcript: string }) => {
+      setState((prev) => ({
+        ...prev,
+        activeEmotion: result.emotion as EmotionKey,
+        confidence: result.confidence,
+        transcript: result.transcript,
+      }));
+    },
+    []
+  );
+
+  // Expose global API for Gemini Live integration
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      (window as typeof window & { EmotiArt: typeof window.EmotiArt }).EmotiArt = {
+        setEmotion,
+        setTranscript,
+        setListening,
+        generate,
+        processGeminiResult,
+      };
+    }
+  }, [setEmotion, setTranscript, setListening, generate, processGeminiResult]);
+
+  return (
+    <div className="h-screen w-screen flex flex-col overflow-hidden bg-[#0d0d0f]">
+      <Navbar />
+
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        {/* Mobile: Canvas on top */}
+        <div className="flex-1 lg:order-2 min-h-[50vh] lg:min-h-0">
+          <ArtCanvas
+            ref={canvasRef}
+            emotion={state.activeEmotion}
+            isGenerated={state.isGenerated}
+            generationKey={state.generationKey}
+          />
+        </div>
+
+        {/* Sidebar */}
+        <aside className="w-full lg:w-[320px] lg:order-1 flex-shrink-0 p-3 flex flex-col gap-3 overflow-y-auto">
+          <LiveInputPanel
+            onEmotionChange={handleEmotionChange}
+            isActive={state.isListening}
+            onActiveChange={setListening}
+          />
+          <EmotionDetectionPanel
+            activeEmotion={state.activeEmotion}
+            confidence={state.confidence}
+          />
+          <VisualGuidePanel />
+
+          <button
+            onClick={generate}
+            className="w-full h-11 bg-white text-black font-sans font-semibold text-sm rounded-lg hover:opacity-88 active:scale-[0.98] transition-all duration-150"
+          >
+            Generate Art
+          </button>
+        </aside>
+      </main>
+    </div>
+  );
+}
+
+// Type augmentation for window
+declare global {
+  interface Window {
+    EmotiArt: {
+      setEmotion: (key: string, confidence?: number) => void;
+      setTranscript: (text: string) => void;
+      setListening: (active: boolean) => void;
+      generate: () => void;
+      processGeminiResult: (result: {
+        emotion: string;
+        confidence: number;
+        transcript: string;
+      }) => void;
+    };
+  }
+}
