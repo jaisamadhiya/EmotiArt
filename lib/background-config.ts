@@ -146,3 +146,72 @@ export function generateBackground(
     animationSpeed: curves.speed,
   };
 }
+
+// ============================================================================
+// Step 5: SVG Curve Generation Function
+// ============================================================================
+
+export function generateFlowingCurvesSVG(
+  attributes: CurveAttributes,
+  width: number,
+  height: number
+): string {
+  const curves: string[] = [];
+  const { density, movement, sharpness } = attributes;
+
+  // Generate curves based on movement type and density
+  for (let i = 0; i < density; i++) {
+    const offsetY = (height / (density + 1)) * (i + 1);
+    const offsetX = Math.random() * width;
+
+    if (movement === 'upward') {
+      // Ascending curves
+      curves.push(
+        `<path d="M 0,${offsetY} Q ${width * 0.25},${offsetY - 30} ${width * 0.5},${offsetY - 50} T ${width},${offsetY - 80}" ` +
+        `stroke="currentColor" stroke-width="${30 - sharpness * 10}" fill="none" opacity="0.3" filter="url(#blur)"/>`
+      );
+    } else if (movement === 'downward') {
+      // Drooping curves
+      curves.push(
+        `<path d="M 0,${offsetY} Q ${width * 0.25},${offsetY + 25} ${width * 0.5},${offsetY + 40} T ${width},${offsetY + 60}" ` +
+        `stroke="currentColor" stroke-width="${25}" fill="none" opacity="0.25" filter="url(#blur)"/>`
+      );
+    } else if (movement === 'horizontal') {
+      // Gentle waves
+      curves.push(
+        `<path d="M 0,${offsetY} Q ${width * 0.25},${offsetY - 15} ${width * 0.5},${offsetY} T ${width},${offsetY}" ` +
+        `stroke="currentColor" stroke-width="${20}" fill="none" opacity="0.25" filter="url(#blur)"/>`
+      );
+    } else if (movement === 'chaotic') {
+      // Scattered, random curves
+      const randomY1 = offsetY + (Math.random() - 0.5) * 60;
+      const randomY2 = offsetY + (Math.random() - 0.5) * 60;
+      curves.push(
+        `<path d="M 0,${offsetY} Q ${width * 0.3},${randomY1} ${width * 0.6},${randomY2} T ${width},${offsetY + (Math.random() - 0.5) * 40}" ` +
+        `stroke="currentColor" stroke-width="${20 + sharpness * 5}" fill="none" opacity="0.3" filter="url(#blur)"/>`
+      );
+    } else if (movement === 'swirling') {
+      // Circular swirling patterns
+      const angle = (i / density) * Math.PI * 2;
+      const radiusX = width * 0.3;
+      const radiusY = height * 0.3;
+      curves.push(
+        `<ellipse cx="${width / 2}" cy="${height / 2}" rx="${radiusX + i * 10}" ry="${radiusY + i * 10}" ` +
+        `stroke="currentColor" stroke-width="${15 + sharpness * 5}" fill="none" opacity="${0.3 - i * 0.02}" filter="url(#blur)"/>`
+      );
+    }
+  }
+
+  const svg = `
+    <svg viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;pointer-events:none;">
+      <defs>
+        <filter id="blur">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="2" />
+        </filter>
+      </defs>
+      ${curves.join('\n')}
+    </svg>
+  `;
+
+  return svg;
+}
