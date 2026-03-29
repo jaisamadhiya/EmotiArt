@@ -18,6 +18,15 @@ export default function EmotiArtPage() {
     generationKey: 0,
   });
 
+  const handleEmotionChange = useCallback((emotion: EmotionKey, confidence: number) => {
+    setState((prev) => ({
+      ...prev,
+      activeEmotion: emotion,
+      confidence,
+      isGenerated: true,
+    }));
+  }, []);
+
   const canvasRef = useRef<{ regenerate: () => void; download: () => void }>(null);
 
   const setEmotion = useCallback((key: string, confidence?: number) => {
@@ -88,8 +97,9 @@ export default function EmotiArtPage() {
       {/* Sidebar */}
       <aside className="w-full lg:w-[320px] lg:order-1 flex-shrink-0 p-3 flex flex-col gap-3 overflow-y-auto">
         <LiveInputPanel
-          isListening={state.isListening}
-          transcript={state.transcript}
+          onEmotionChange={handleEmotionChange}
+          isActive={state.isListening}
+          onActiveChange={setListening}
         />
         <EmotionDetectionPanel
           activeEmotion={state.activeEmotion}
