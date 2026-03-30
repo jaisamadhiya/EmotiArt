@@ -349,16 +349,17 @@ function drawShape(
   time: number,
   enableGlow: boolean = true
 ) {
-  // Pulse animation - calmer for waves
+  // Pulse animation - calmer for waves and triangles (angry)
   const isCalm = shape.shapeType === "wave";
-  const pulseTimeMultiplier = isCalm ? 0.0005 : 0.002;
-  const pulseAmount = isCalm ? 0.03 : 0.08;
+  const isAngry = shape.shapeType === "triangle";
+  const pulseTimeMultiplier = isCalm ? 0.0005 : isAngry ? 0.0008 : 0.002;
+  const pulseAmount = isCalm ? 0.03 : isAngry ? 0.04 : 0.08;
   const pulseScale = 1 + Math.sin(time * pulseTimeMultiplier * shape.pulseSpeed + shape.pulsePhase) * pulseAmount;
   const animatedSize = shape.size * pulseScale;
   
-  // Position animation (subtle drift) - calmer for waves
-  const driftSpeed = isCalm ? 0.0003 : 0.001;
-  const driftAmount = isCalm ? 1.5 : 3;
+  // Position animation (subtle drift) - calmer for waves and triangles
+  const driftSpeed = isCalm ? 0.0003 : isAngry ? 0.0004 : 0.001;
+  const driftAmount = isCalm ? 1.5 : isAngry ? 2 : 3;
   const animX = shape.x + Math.sin(time * driftSpeed + shape.pulsePhase) * driftAmount;
   const animY = shape.y + Math.cos(time * driftSpeed * 1.2 + shape.pulsePhase) * driftAmount;
 
@@ -526,8 +527,9 @@ function drawShape(
       break;
     }
     case "triangle": {
-      const animatedRotation = shape.rotation + time * shape.rotationSpeed;
-      ctx.rotate(animatedRotation);
+      // Minimal rotation for angry triangles - just a slow gentle sway, not spinning
+      const gentleSway = Math.sin(time * 0.0003 + shape.pulsePhase) * 0.1; // Very subtle rotation
+      ctx.rotate(shape.rotation + gentleSway);
 
       const h = animatedSize;
       const w = animatedSize * 0.8;
