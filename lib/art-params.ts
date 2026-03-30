@@ -12,11 +12,11 @@ export const EMOTION_ART: Record<EmotionKey, { color: string; colorRgb: number[]
 };
 
 const INTENSITY_SCALE = {
-  shapeCount: [10,   32  ] as [number, number],
-  sizeMin:    [12,   22  ] as [number, number],
-  sizeMax:    [30,   90  ] as [number, number],
-  opacityMin: [0.10, 0.25] as [number, number],
-  opacityMax: [0.40, 0.80] as [number, number],
+  shapeCount: [40,   120 ] as [number, number],
+  sizeMin:    [8,    20  ] as [number, number],
+  sizeMax:    [40,   100 ] as [number, number],
+  opacityMin: [0.15, 0.35] as [number, number],
+  opacityMax: [0.50, 0.90] as [number, number],
 };
 
 function lerp([lo, hi]: [number, number], t: number) {
