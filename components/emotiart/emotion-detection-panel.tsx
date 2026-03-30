@@ -4,15 +4,14 @@ import { EMOTIONS, EmotionKey } from "@/lib/emotiart-types";
 
 interface EmotionDetectionPanelProps {
   activeEmotion: EmotionKey;
-  confidence: number;
+  confidence?: number;
 }
 
 export function EmotionDetectionPanel({
   activeEmotion,
-  confidence,
 }: EmotionDetectionPanelProps) {
   const activeEmotionData = EMOTIONS.find((e) => e.key === activeEmotion);
-  const activeColor = activeEmotionData?.color ?? "#6b6b7a";
+  const _activeColor = activeEmotionData?.color ?? "#6b6b7a";
 
   return (
     <div className="bg-[#16161a] border border-[rgba(255,255,255,0.07)] rounded-xl p-4 flex flex-col gap-4">
@@ -51,26 +50,7 @@ export function EmotionDetectionPanel({
         })}
       </div>
 
-      {/* Confidence Bar */}
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between">
-          <label className="font-mono text-[11px] uppercase tracking-[0.1em] text-[#6b6b7a]">
-            Confidence
-          </label>
-          <span className="font-mono text-[11px] text-[#6b6b7a]">
-            {Math.round(confidence)}%
-          </span>
-        </div>
-        <div className="h-1 w-full bg-[rgba(255,255,255,0.08)] rounded-full overflow-hidden">
-          <div
-            className="h-full rounded-full transition-[width] duration-400 ease-out"
-            style={{
-              width: `${confidence}%`,
-              backgroundColor: activeColor,
-            }}
-          />
-        </div>
-      </div>
+
     </div>
   );
 }
