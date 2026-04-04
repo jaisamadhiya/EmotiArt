@@ -70,3 +70,4 @@ Open [http://localhost:3000](http://localhost:3000).
 
 Face-api expression → EmotiArt emotion mapping:
 `happy → happy` · `neutral → calm` · `sad → sad` · `angry → angry` · `fearful → anxious` · `surprised → excited` · `disgusted → overwhelmed`
+
