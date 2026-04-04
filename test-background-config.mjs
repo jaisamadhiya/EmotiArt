@@ -1,5 +1,6 @@
 import { getCurveAttributes, blendCurveAttributes, generateBackground } from "./lib/background-config.ts";
 
+
 console.log("=== Testing getCurveAttributes ===");
 const happyAttrs = getCurveAttributes('happy');
 console.log("happy:", happyAttrs);
