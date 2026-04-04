@@ -3,6 +3,7 @@ import { analyzeVoiceEmotion } from './lib/voice-emotion.ts';
 import { synthesize } from './lib/emotion-synthesizer.ts';
 import { buildArtParams } from './lib/art-params.ts';
 
+
 // Same transcript the user tested with
 const transcript = "today today my dog died and I'm pretty devastated and I don't really like it and but I'm happy because I passed my test and I got a hundred";
 
