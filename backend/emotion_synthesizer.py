@@ -1,5 +1,6 @@
 import math
 
+#Update emotion vectors with overwhelmed
 # Each emotion is a point in 2D space:
 #   valence = how positive/negative the mood is  (-1 to 1)
 #   arousal = how much energy it carries          (-1 to 1)
